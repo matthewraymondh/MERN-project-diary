@@ -7,6 +7,8 @@ import {
   UPDATE,
   START_LOADING,
   END_LOADING,
+  LIKE,
+  COMMENT,
 } from "../constants/actionTypes";
 
 // eslint-disable-next-line import/no-anonymous-default-export
@@ -47,6 +49,23 @@ export default (state = { isLoading: true, posts: [] }, action) => {
       };
     case CREATE:
       return { ...state, posts: [...state.posts, action.payload] };
+    case LIKE:
+      return {
+        ...state,
+        posts: state.posts.map((post) =>
+          post._id === action.payload._id ? action.payload : post
+        ),
+      };
+    case COMMENT:
+      return {
+        ...state,
+        posts: state.posts.map((post) => {
+          if (post._id === action.payload._id) {
+            return action.payload;
+          }
+          return post;
+        }),
+      };
     default:
       return state;
   }

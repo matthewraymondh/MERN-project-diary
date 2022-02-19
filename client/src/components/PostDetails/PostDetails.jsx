@@ -5,10 +5,11 @@ import {
   Divider,
 } from "@material-ui/core";
 import moment from "moment";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams, useNavigate } from "react-router-dom";
-import { getPost } from "../../actions/posts";
+import { getPost, getPostsBySearch } from "../../actions/posts";
+import CommentSection from "./CommentSection";
 
 import useStyles from "./styles";
 
@@ -17,13 +18,24 @@ const PostDetails = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const classes = useStyles();
+  const [user, setUser] = useState(JSON.parse(localStorage.getItem("profile")));
   const { id } = useParams();
 
   useEffect(() => {
     dispatch(getPost(id));
   }, [id]);
 
+  useEffect(() => {
+    if (!post) {
+      dispatch(
+        getPostsBySearch({ search: "none", tags: post?.tags.join(",") })
+      );
+    }
+  }, [post]);
+
   if (!post) return null;
+
+  const openPost = (_id) => navigate(`/posts/${_id}`);
 
   if (isLoading) {
     return (
@@ -32,6 +44,8 @@ const PostDetails = () => {
       </Paper>
     );
   }
+
+  const recommendedPosts = posts.filter(({ _id }) => _id !== post._id);
 
   return (
     <Paper style={{ padding: "20px", borderRadius: "15px" }} elevation={6}>
@@ -51,7 +65,7 @@ const PostDetails = () => {
           <Typography gutterBottom variant="body1" component="p">
             {post.message}
           </Typography>
-          <Typography variant="h6">Created by: {post.name}</Typography>
+          <Typography variant="h6">Created by: {user.result.name}</Typography>
           <Typography variant="body1">
             {moment(post.createdAt).fromNow()}
           </Typography>
@@ -60,9 +74,7 @@ const PostDetails = () => {
             <strong>Realtime Chat - coming soon!</strong>
           </Typography>
           <Divider style={{ margin: "20px 0" }} />
-          <Typography variant="body1">
-            <strong>Comments - coming soon!</strong>
-          </Typography>
+          <CommentSection post={post} />
           <Divider style={{ margin: "20px 0" }} />
         </div>
         <div className={classes.imageSection}>
@@ -76,6 +88,49 @@ const PostDetails = () => {
           />
         </div>
       </div>
+      {recommendedPosts.length && (
+        <div className={classes.section}>
+          <Typography gutterBottom variant="h5">
+            You might also like:
+          </Typography>
+          <Divider />
+          <div className={classes.recommendedPosts}>
+            {recommendedPosts.map(
+              ({ title, message, name, likes, selectedFile, _id }) => (
+                <div
+                  style={{ margin: "20px", cursor: "pointer" }}
+                  onClick={() => openPost(_id)}
+                  key={_id}
+                >
+                  <Paper
+                    style={{ padding: "20px", borderRadius: "15px" }}
+                    elevation={6}
+                  >
+                    <Typography gutterBottom variant="h6">
+                      {title}
+                    </Typography>
+                    <Typography gutterBottom variant="subtitle2">
+                      {name}
+                    </Typography>
+                    <Typography gutterBottom variant="subtitle2">
+                      {message}
+                    </Typography>
+                    <Typography gutterBottom variant="subtitle2">
+                      Likes: {likes.length}
+                    </Typography>
+                    <img
+                      style={{ borderRadius: "10px" }}
+                      src={selectedFile}
+                      width="200px"
+                      alt={title}
+                    />
+                  </Paper>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+      )}
     </Paper>
   );
 };

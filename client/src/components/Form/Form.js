@@ -4,6 +4,7 @@ import useStyles from "./styles";
 import FileBase from "react-file-base64";
 import { useDispatch, useSelector } from "react-redux";
 import { createPost, updatePost } from "../../actions/posts";
+import { useNavigate } from "react-router-dom";
 
 const Form = ({ currentId, setCurrentId }) => {
   const [postData, setPostData] = useState({
@@ -13,10 +14,11 @@ const Form = ({ currentId, setCurrentId }) => {
     selectedFile: "",
   });
   const post = useSelector((state) =>
-    currentId ? state.posts.find((p) => p._id === currentId) : null
+    currentId ? state.posts.posts.find((p) => p._id === currentId) : null
   );
   const classes = useStyles();
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("profile"));
 
   useEffect(() => {
@@ -37,7 +39,7 @@ const Form = ({ currentId, setCurrentId }) => {
     e.preventDefault();
 
     if (currentId === 0) {
-      dispatch(createPost({ ...postData, name: user?.result?.name }));
+      dispatch(createPost({ ...postData, name: user?.result?.name }, navigate));
       clear();
     } else {
       dispatch(
@@ -49,7 +51,7 @@ const Form = ({ currentId, setCurrentId }) => {
 
   if (!user?.result?.name) {
     return (
-      <Paper className={classes.paper}>
+      <Paper className={classes.paper} elevation={6}>
         <Typography variant="h6" align="center">
           Please Sign In to create your own Diaries and like other's diaries.
         </Typography>
